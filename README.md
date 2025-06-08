@@ -21,7 +21,14 @@ Pebble is a feature-rich Discord bot designed to help couples stay connected and
    ```
 
 ## Environment Variables
-Create a `config.env.txt` file in the project root containing your Discord bot token:
+Copy the provided `.env.example` file to `config.env.txt` and replace the
+placeholder values with your own:
+
+```bash
+cp .env.example config.env.txt
+```
+
+Then edit `config.env.txt` so that it contains your Discord bot token:
 
 ```
 DISCORD_TOKEN=your-token-here
