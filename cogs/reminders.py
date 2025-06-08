@@ -19,7 +19,6 @@ db_path = './data/databases/pebble.db'
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 BST = pytz.timezone("Europe/London")
