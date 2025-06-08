@@ -1,7 +1,7 @@
 import discord
 import logging
-import aiosqlite
-import os
+
+from core.database import DB_PATH
 from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import has_permissions
@@ -11,8 +11,6 @@ from core.utils import log_command_usage, check_permissions
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-os.makedirs('./data/databases', exist_ok=True)
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
@@ -27,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 async def get_bio_settings():
     try:
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             async with conn.execute('SELECT value FROM customisation WHERE type = ?', ("activity_type",)) as cursor:
                 activity_type_doc = await cursor.fetchone()
             async with conn.execute('SELECT value FROM customisation WHERE type = ?', ("bio",)) as cursor:
@@ -80,7 +78,7 @@ class CustomisationCog(commands.Cog):
                                                     ephemeral=True)
             return
 
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             try:
                 if colour.startswith("#"):
                     color = colour[1:]
@@ -124,7 +122,7 @@ class CustomisationCog(commands.Cog):
             await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
             return
 
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             try:
                 if activity_type.lower() == "playing":
                     activity = discord.Game(name=bio)
@@ -167,7 +165,7 @@ class CustomisationCog(commands.Cog):
 # ---------------------------------------------------------------------------------------------------------------------
 
 async def setup(bot):
-    async with aiosqlite.connect(db_path) as conn:
+    async with aiosqlite.connect(DB_PATH) as conn:
         await conn.execute('''
         CREATE TABLE IF NOT EXISTS customisation (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

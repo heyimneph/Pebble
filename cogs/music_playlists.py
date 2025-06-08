@@ -1,7 +1,8 @@
 import discord
 import validators
 import yt_dlp as youtube_dl
-import aiosqlite
+
+from core.database import DB_PATH
 import logging
 
 from discord import app_commands
@@ -12,7 +13,6 @@ from core.utils import check_permissions, log_command_usage
 # ---------------------------------------------------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------------------------------------------------
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging
@@ -76,7 +76,7 @@ class ConfirmView(discord.ui.View):
 
     @discord.ui.button(label='Yes', style=discord.ButtonStyle.red)
     async def confirm_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             await db.execute(
                 "DELETE FROM songs WHERE user_id = ? AND playlist_name = ? AND url = ?",
                 (self.user_id, self.playlist_name, self.song_url)
@@ -96,7 +96,7 @@ class PlaylistManager(commands.Cog):
         self.bot = bot
 
     async def create_playlist(self, user_id: str, playlist_name: str):
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             # Check if the playlist already exists
             cursor = await db.execute(
                 "SELECT 1 FROM playlists WHERE user_id = ? AND name = ?",
@@ -114,7 +114,7 @@ class PlaylistManager(commands.Cog):
         return True
 
     async def get_playlist_songs(self, user_id: str, playlist_name: str):
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             cursor = await db.execute(
                 "SELECT title, url FROM songs WHERE user_id = ? AND playlist_name = ?",
                 (user_id, playlist_name)
@@ -124,7 +124,7 @@ class PlaylistManager(commands.Cog):
 
     async def autocomplete_playlists(self, interaction: discord.Interaction, current: str):
         user_id = str(interaction.user.id)
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             cursor = await db.execute(
                 "SELECT name FROM playlists WHERE user_id = ?",
                 (user_id,)
@@ -135,7 +135,7 @@ class PlaylistManager(commands.Cog):
 
     async def autocomplete_songs(self, interaction: discord.Interaction, current: str):
         user_id = str(interaction.user.id)
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             cursor = await db.execute(
                 "SELECT title, url FROM songs WHERE user_id = ?",
                 (user_id,)
@@ -167,7 +167,7 @@ class PlaylistManager(commands.Cog):
     @app_commands.describe(playlist="The playlist you want to delete")
     async def delete_playlist(self, interaction: discord.Interaction, playlist: str):
         user_id = str(interaction.user.id)
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             await db.execute(
                 "DELETE FROM playlists WHERE user_id = ? AND name = ?",
                 (user_id, playlist)
@@ -191,7 +191,7 @@ class PlaylistManager(commands.Cog):
             song_url = song_info['entries'][0]['webpage_url']
             song_title = song_info['entries'][0]['title']
 
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 await db.execute(
                     "INSERT INTO songs (user_id, playlist_name, title, url) VALUES (?, ?, ?, ?)",
                     (user_id, playlist, song_title, song_url)
@@ -219,7 +219,7 @@ class PlaylistManager(commands.Cog):
 #  Setup Function
 #  ---------------------------------------------------------------------------------------------------------------------
 async def setup(bot):
-    async with aiosqlite.connect(db_path) as conn:
+    async with aiosqlite.connect(DB_PATH) as conn:
         await conn.execute('''
             CREATE TABLE IF NOT EXISTS playlists (
                 user_id TEXT,

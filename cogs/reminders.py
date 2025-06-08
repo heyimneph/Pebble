@@ -1,9 +1,9 @@
 import discord
-import aiosqlite
+
+from core.database import DB_PATH
 import asyncio
 import logging
 import pytz
-import os
 
 from datetime import datetime, timedelta
 from discord.ext import commands, tasks
@@ -13,8 +13,6 @@ from core.utils import log_command_usage, get_embed_colour
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-os.makedirs('./data/databases', exist_ok=True)
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
@@ -50,7 +48,7 @@ class ReminderCog(commands.Cog):
             user_id = interaction.user.id
             guild_id = interaction.guild.id
 
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 cur = await db.execute("SELECT partner_id FROM user_info WHERE guild_id = ? AND user_id = ?",
                                        (guild_id, user_id))
                 result = await cur.fetchone()
@@ -101,7 +99,7 @@ class ReminderCog(commands.Cog):
             user_id = interaction.user.id
             guild_id = interaction.guild.id
 
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 cur = await db.execute("""
                     SELECT id, message, remind_time, repeat FROM reminders
                     WHERE guild_id = ? AND user_id = ?
@@ -140,7 +138,7 @@ class ReminderCog(commands.Cog):
             user_id = interaction.user.id
             guild_id = interaction.guild.id
 
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 cur = await db.execute("""
                     SELECT id FROM reminders WHERE id = ? AND guild_id = ? AND user_id = ?
                 """, (reminder_id, guild_id, user_id))
@@ -162,7 +160,7 @@ class ReminderCog(commands.Cog):
 
     # ---------------------------------------------------------------------------------------------------------------------
     async def save_reminder(self, guild_id, user_id, partner_id, channel_id, message, remind_time, repeat):
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             await db.execute('''
                 INSERT INTO reminders (guild_id, user_id, partner_id, channel_id, message, remind_time, repeat, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -174,7 +172,7 @@ class ReminderCog(commands.Cog):
     async def check_reminders(self):
         now = datetime.utcnow().isoformat()
         try:
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 cur = await db.execute("SELECT * FROM reminders WHERE remind_time <= ?", (now,))
                 reminders = await cur.fetchall()
 
@@ -226,7 +224,7 @@ class ReminderCog(commands.Cog):
 # SETUP FUNCTION
 # ---------------------------------------------------------------------------------------------------------------------
 async def setup(bot):
-    async with aiosqlite.connect(db_path) as db:
+    async with aiosqlite.connect(DB_PATH) as db:
         await db.execute('''
             CREATE TABLE IF NOT EXISTS reminders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

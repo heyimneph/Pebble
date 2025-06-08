@@ -7,6 +7,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 from discord.ext.commands import is_owner, Context
+from core.database import DB_PATH
 
 # Loads the .env file that resides on the same level as the script
 load_dotenv("config.env.txt")
@@ -27,7 +28,7 @@ intents.message_content = True
 # Ensure the necessary directories exist
 os.makedirs('data', exist_ok=True)
 os.makedirs('data/logs', exist_ok=True)
-os.makedirs('data/databases', exist_ok=True)
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 os.makedirs('data/prompt_bank', exist_ok=True)
 os.makedirs('data/fonts', exist_ok=True)
 

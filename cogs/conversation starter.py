@@ -3,7 +3,8 @@ import logging
 import asyncio
 import random
 import pytz
-import aiosqlite
+
+from core.database import DB_PATH
 import json
 import os
 
@@ -15,8 +16,6 @@ from core.utils import get_embed_colour, log_command_usage
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-os.makedirs('./data/databases', exist_ok=True)
-db_path = './data/databases/pebble.db'
 prompt_file = './data/prompt_bank/prompts.json'
 BST_TIMEZONE = pytz.timezone("Europe/London")
 
@@ -61,7 +60,7 @@ class ConversationCog(commands.Cog):
 
         prompt_text = random.choice(prompts)
 
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             cursor = await conn.execute('''
                 SELECT guild_id, prompt_channel_id
                 FROM config
@@ -91,7 +90,7 @@ class ConversationCog(commands.Cog):
                 await interaction.response.send_message("Error: You don't have permission to set that channel.", ephemeral=True)
                 return
 
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 await conn.execute('''
                     INSERT INTO config (guild_id, prompt_channel_id)
                     VALUES (?, ?)

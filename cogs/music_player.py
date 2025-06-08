@@ -6,7 +6,8 @@ import os
 import random
 import validators
 import yt_dlp as youtube_dl
-import aiosqlite
+
+from core.database import DB_PATH
 import logging
 import asyncio
 
@@ -19,7 +20,6 @@ from core.utils import check_permissions, log_command_usage
 # ---------------------------------------------------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------------------------------------------------
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging
@@ -268,7 +268,7 @@ class MusicPlayer(commands.Cog):
 
     async def autocomplete_playlists(self, interaction: discord.Interaction, current: str):
         user_id = str(interaction.user.id)
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             cursor = await db.execute(
                 "SELECT name FROM playlists WHERE user_id = ? AND name LIKE ?",
                 (user_id, f'%{current}%')
@@ -284,7 +284,7 @@ class MusicPlayer(commands.Cog):
         await self.load_progress_images()
 
     async def load_progress_images(self):
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             cursor = await db.execute('SELECT percentage, url FROM progress_bars')
             rows = await cursor.fetchall()
             self.progress_bar_images = {str(row[0]): row[1] for row in rows}
@@ -348,7 +348,7 @@ class MusicPlayer(commands.Cog):
 
     async def generate_and_upload_progress_images(self):
         channel = self.bot.get_channel(1359480363725885470)
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             await db.execute('DELETE FROM progress_bars')
 
             for i in range(101):  # Loop through percentages 0 to 100
@@ -737,7 +737,7 @@ class MusicPlayer(commands.Cog):
             return
 
         user_id = str(interaction.user.id)
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             cursor = await db.execute(
                 "SELECT title, url FROM songs WHERE user_id = ? AND playlist_name = ?",
                 (user_id, playlist_name)
@@ -789,7 +789,7 @@ class MusicPlayer(commands.Cog):
 #  Setup Function
 #  ---------------------------------------------------------------------------------------------------------------------
 async def setup(bot):
-    async with aiosqlite.connect(db_path) as db:
+    async with aiosqlite.connect(DB_PATH) as db:
         await db.execute('''
             CREATE TABLE IF NOT EXISTS playlists (
                 user_id TEXT,

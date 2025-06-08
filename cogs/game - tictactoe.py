@@ -1,6 +1,7 @@
 import random
 import discord
-import aiosqlite
+
+from core.database import DB_PATH
 import logging
 
 from discord import app_commands
@@ -12,7 +13,6 @@ from core.utils import check_permissions, log_command_usage
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
@@ -138,7 +138,7 @@ class GameView(View):
 
     async def update_leaderboard(self, guild_id, winner_id, loser_id, draw=False):
         game_name = "TicTacToe"
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             if draw:
                 await db.execute(
                     "INSERT INTO leaderboards (guild_id, game, user_id, draws) VALUES (?, ?, ?, 1) "
@@ -285,7 +285,7 @@ class TicTacToe(commands.Cog):
 # Setup Function
 # ---------------------------------------------------------------------------------------------------------------------
 async def setup(bot):
-    async with aiosqlite.connect(db_path) as conn:
+    async with aiosqlite.connect(DB_PATH) as conn:
         await conn.execute('''
             CREATE TABLE IF NOT EXISTS leaderboards (
                 guild_id INTEGER,

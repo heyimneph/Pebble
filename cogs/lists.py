@@ -1,8 +1,8 @@
 
 import logging
 import discord
-import aiosqlite
-import os
+
+from core.database import DB_PATH
 import re
 
 from discord.ext import commands
@@ -12,8 +12,6 @@ from core.utils import log_command_usage
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-os.makedirs('./data/databases', exist_ok=True)
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
@@ -59,7 +57,7 @@ class BedroomListView(discord.ui.View):
         channel = interaction.channel
 
         # Create a dropdown with incomplete items
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             cursor = await conn.execute('''
                 SELECT item_index, content
                 FROM bedroom_items
@@ -103,7 +101,7 @@ class BedroomListView(discord.ui.View):
 
                 try:
                     # Update the database
-                    async with aiosqlite.connect(db_path) as conn:
+                    async with aiosqlite.connect(DB_PATH) as conn:
                         await conn.execute('''
                             UPDATE bedroom_items
                             SET checked = 1
@@ -134,7 +132,7 @@ class BedroomListView(discord.ui.View):
     async def refresh_embed(self, interaction: discord.Interaction, channel: discord.TextChannel):
         try:
             # Recreate the embed with updated items
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 cursor = await conn.execute('''
                     SELECT content, checked FROM bedroom_items
                     WHERE guild_id = ? AND channel_name = ?
@@ -172,7 +170,7 @@ class BedroomListView(discord.ui.View):
             self.current_page = min(self.current_page, len(pages) - 1)
 
             # Get the original message ID from the database
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 cursor = await conn.execute('''
                     SELECT message_id FROM bedroom_lists
                     WHERE guild_id = ? AND channel_name = ?
@@ -213,7 +211,7 @@ class ListsCog(commands.Cog):
         return interaction.user.id == 111941993629806592
 
     async def refresh_bedroom_embed(self, interaction: discord.Interaction, channel_obj: discord.TextChannel):
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             cursor = await conn.execute('''
                 SELECT message_id FROM bedroom_lists
                 WHERE guild_id = ? AND channel_name = ?
@@ -264,7 +262,7 @@ class ListsCog(commands.Cog):
         await self.bot.wait_until_ready()  # Wait until the bot is fully loaded
         logger.info("Restoring list views...")
 
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             cursor = await conn.execute('''
                 SELECT guild_id, channel_name, message_id FROM bedroom_lists
             ''')
@@ -287,7 +285,7 @@ class ListsCog(commands.Cog):
                     continue
 
                 # Recreate the view with current data
-                async with aiosqlite.connect(db_path) as conn:
+                async with aiosqlite.connect(DB_PATH) as conn:
                     cursor = await conn.execute('''
                         SELECT content, checked FROM bedroom_items
                         WHERE guild_id = ? AND channel_name = ?
@@ -339,7 +337,7 @@ class ListsCog(commands.Cog):
                 logger.error(f"Error restoring view for message {message_id} in channel {channel_name}: {e}")
     # ---------------------------------------------------------------------------------------------------------------------
     async def autocomplete_channel(self, interaction: discord.Interaction, current: str):
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             cursor = await conn.execute('''
                 SELECT DISTINCT channel_id FROM bedroom_lists
                 WHERE guild_id = ?
@@ -369,7 +367,7 @@ class ListsCog(commands.Cog):
         if not channel:
             return []
 
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             cursor = await conn.execute('''
                 SELECT item_index, content
                 FROM bedroom_items
@@ -397,7 +395,7 @@ class ListsCog(commands.Cog):
         if not channel:
             return []
 
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             cursor = await conn.execute('''
                 SELECT item_index, content
                 FROM bedroom_items
@@ -423,7 +421,7 @@ class ListsCog(commands.Cog):
         if message.author.bot or not message.guild:
             return
 
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             cursor = await conn.execute('''
                 SELECT message_id FROM bedroom_lists
                 WHERE guild_id = ? AND channel_name = ?
@@ -502,7 +500,7 @@ class ListsCog(commands.Cog):
                 await interaction.response.send_message("Error: Channel not found.", ephemeral=True)
                 return
 
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 index_match = re.match(r'^(\d+)\.', item)
                 if not index_match:
                     await interaction.response.send_message("Error: Could not extract index from selection.",
@@ -577,7 +575,7 @@ class ListsCog(commands.Cog):
                 await interaction.response.send_message("Error: Channel not found.", ephemeral=True)
                 return
 
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 index_match = re.match(r'^(\d+)\.', item)
                 if not index_match:
                     await interaction.response.send_message("Error: Could not extract index from selection.",
@@ -614,7 +612,7 @@ class ListsCog(commands.Cog):
                 await interaction.response.send_message("Error: Channel not found.", ephemeral=True)
                 return
 
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 index_match = re.match(r'^(\d+)\.', item)
                 if not index_match:
                     await interaction.response.send_message("Error: Could not extract index from selection.",
@@ -657,7 +655,7 @@ class ListsCog(commands.Cog):
                 await interaction.response.send_message("Error: Channel not found.", ephemeral=True)
                 return
 
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 index_match = re.match(r'^(\d+)\.', item)
                 if not index_match:
                     await interaction.response.send_message("Error: Could not extract index from selection.",
