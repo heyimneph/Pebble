@@ -28,8 +28,8 @@ intents.message_content = True
 os.makedirs('data', exist_ok=True)
 os.makedirs('data/logs', exist_ok=True)
 os.makedirs('data/databases', exist_ok=True)
-os.makedirs('data/prompt_bank', exist_ok=True)
-os.makedirs('data/fonts', exist_ok=True)
+os.makedirs('prompt_bank', exist_ok=True)
+os.makedirs('fonts', exist_ok=True)
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger('discord')
