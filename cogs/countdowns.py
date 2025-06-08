@@ -290,8 +290,11 @@ class CountdownCog(commands.Cog):
                 except discord.NotFound:
                     return  # message deleted, bail out
                 except (aiohttp.ClientConnectorDNSError, aiohttp.ClientConnectionError) as e:
-                    logger.error(f"Network error finishing countdown '{name}': {e}")
-                    return
+                    logger.error(
+                        f"Network error finishing countdown '{name}': {e}; retrying in 30s"
+                    )
+                    await asyncio.sleep(30)
+                    continue
                 break
 
             # Format remaining time
@@ -319,8 +322,11 @@ class CountdownCog(commands.Cog):
             except discord.NotFound:
                 return  # stop if message was deleted
             except (aiohttp.ClientConnectorDNSError, aiohttp.ClientConnectionError) as e:
-                logger.error(f"Network error updating countdown '{name}': {e}")
-                return  # exit loop on DNS/connection failure
+                logger.error(
+                    f"Network error updating countdown '{name}': {e}; retrying in 60s"
+                )
+                await asyncio.sleep(60)
+                continue
 
             # if less than a minute left, update every second; otherwise every minute
             await asyncio.sleep(1 if remaining.total_seconds() <= 60 else 60)
