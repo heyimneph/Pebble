@@ -1,0 +1,19 @@
+# Compiled Python files and caches
+__pycache__/
+*.py[cod]
+
+# Environment files
+*.env
+config.env.txt
+
+# Data folders
+data/
+data/databases/
+data/logs/
+
+# Virtual environments
+venv/
+.venv/
+
+# OS-specific files
+.DS_Store
