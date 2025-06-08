@@ -16,7 +16,6 @@ wyr_file = './data/prompt_bank/would_you_rather.json'
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 

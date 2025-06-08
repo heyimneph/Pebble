@@ -9,7 +9,6 @@ from core.utils import log_command_usage, get_embed_colour
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
