@@ -1,5 +1,4 @@
 import discord
-import os
 import datetime
 import aiosqlite
 import logging
@@ -8,13 +7,12 @@ from discord import app_commands
 from discord.ext import commands
 
 from config import client
+from core.utils import DB_PATH
 
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-os.makedirs('./data/databases', exist_ok=True)
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
@@ -34,7 +32,7 @@ class TheMachineBotCore(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print(f'Logged on as {self.bot.user}...')
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             async with conn.execute('SELECT value FROM customisation WHERE type = ?', ("activity_type",)) as cursor:
                 activity_type_doc = await cursor.fetchone()
             async with conn.execute('SELECT value FROM customisation WHERE type = ?', ("bio",)) as cursor:

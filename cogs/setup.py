@@ -2,18 +2,15 @@
 import logging
 import discord
 import aiosqlite
-import os
 import re
 
 from discord.ext import commands
 from discord import app_commands
-from core.utils import log_command_usage
+from core.utils import log_command_usage, DB_PATH
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-os.makedirs('./data/databases', exist_ok=True)
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
@@ -63,7 +60,7 @@ class SetupCog(commands.Cog):
                 "Garden": ["adventures", "gallery"]
             }
 
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 for cat_name, channels in categories.items():
                     category = discord.utils.get(guild.categories, name=cat_name)
                     if not category:
@@ -115,7 +112,7 @@ class SetupCog(commands.Cog):
 # Setup Function
 # ---------------------------------------------------------------------------------------------------------------------
 async def setup(bot):
-    async with aiosqlite.connect(db_path) as conn:
+    async with aiosqlite.connect(DB_PATH) as conn:
         # Config table
         await conn.execute('''
             CREATE TABLE IF NOT EXISTS config (

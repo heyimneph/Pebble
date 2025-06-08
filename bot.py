@@ -6,19 +6,18 @@ import logging
 
 from datetime import datetime, timezone
 from config import client, DISCORD_TOKEN, perform_sync
+from core.utils import DB_PATH
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-os.makedirs('./data/databases', exist_ok=True)
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Customisation Functions
 # ---------------------------------------------------------------------------------------------------------------------
 
 async def get_embed_colour():
-    async with aiosqlite.connect(db_path) as conn:
+    async with aiosqlite.connect(DB_PATH) as conn:
         async with conn.execute('SELECT value FROM customisation WHERE type = ?', ("embed_color",)) as cursor:
             row = await cursor.fetchone()
             if row:
@@ -26,7 +25,7 @@ async def get_embed_colour():
             return 0x3498db
 
 async def get_bio_settings():
-    async with aiosqlite.connect(db_path) as conn:
+    async with aiosqlite.connect(DB_PATH) as conn:
         async with conn.execute('SELECT value FROM customisation WHERE type = ?', ("activity_type",)) as cursor:
             activity_type_doc = await cursor.fetchone()
         async with conn.execute('SELECT value FROM customisation WHERE type = ?', ("bio",)) as cursor:
