@@ -8,8 +8,13 @@ from discord.ui import View, Button
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-os.makedirs('./data/databases', exist_ok=True)
-db_path = './data/databases/pebble.db'
+DB_DIR = os.path.join('data', 'databases')
+DB_PATH = os.path.join(DB_DIR, 'pebble.db')
+os.makedirs(DB_DIR, exist_ok=True)
+
+def get_db_path() -> str:
+    """Return the location of the bot's SQLite database."""
+    return DB_PATH
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
@@ -22,7 +27,7 @@ logger = logging.getLogger(__name__)
 async def get_embed_colour(guild_id):
     try:
         guild_id = int(guild_id)
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             async with conn.execute(
                 'SELECT value FROM customisation WHERE type = ? AND guild_id = ?',
                 ("embed_color", guild_id)
@@ -59,8 +64,8 @@ async def log_command_usage(bot, interaction):
         log_channel = None
 
         if guild:
-            async with aiosqlite.connect(db_path) as conn:
-                logger.info(f"Connected to the database at {db_path}")
+            async with aiosqlite.connect(DB_PATH) as conn:
+                logger.info(f"Connected to the database at {DB_PATH}")
                 async with conn.execute(
                     'SELECT log_channel_id FROM config WHERE guild_id = ?', (guild.id,)
                 ) as cursor:
@@ -110,7 +115,7 @@ async def check_permissions(interaction):
     if interaction.user.guild_permissions.administrator:
         return True
 
-    async with aiosqlite.connect(db_path) as conn:
+    async with aiosqlite.connect(DB_PATH) as conn:
         cursor = await conn.execute('''
             SELECT can_use_commands FROM permissions WHERE guild_id = ? AND user_id = ?
         ''', (interaction.guild_id, interaction.user.id))
