@@ -18,12 +18,16 @@ from core.utils import get_embed_colour, log_command_usage
 os.makedirs('./data/databases', exist_ok=True)
 db_path = './data/databases/pebble.db'
 prompt_file = './data/prompt_bank/prompts.json'
+
+prompt_file = './prompt_bank/prompts.json'
+
 BST_TIMEZONE = pytz.timezone("Europe/London")
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
 # ---------------------------------------------------------------------------------------------------------------------
 logging.basicConfig(level=logging.DEBUG)
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------------------------------------------------

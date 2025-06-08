@@ -28,14 +28,37 @@ intents.message_content = True
 os.makedirs('data', exist_ok=True)
 os.makedirs('data/logs', exist_ok=True)
 os.makedirs('data/databases', exist_ok=True)
-os.makedirs('data/prompt_bank', exist_ok=True)
-os.makedirs('data/fonts', exist_ok=True)
+os.makedirs('prompt_bank', exist_ok=True)
+os.makedirs('fonts', exist_ok=True)
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger('discord')
 handler = logging.FileHandler(filename='data/logs/discord.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
+
+os.makedirs('data/prompt_bank', exist_ok=True)
+os.makedirs('data/fonts', exist_ok=True)
+
+
+def setup_logging(level: int = logging.INFO) -> None:
+    """Configure root logging for the entire bot."""
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s:%(levelname)s:%(name)s: %(message)s",
+        handlers=[
+            logging.FileHandler(
+                filename="data/logs/discord.log",
+                encoding="utf-8",
+                mode="w",
+            ),
+            logging.StreamHandler(),
+        ],
+    )
+
+
+setup_logging()
+logger = logging.getLogger(__name__)
 
 client = commands.Bot(command_prefix=DISCORD_PREFIX,
                       intents=intents,
