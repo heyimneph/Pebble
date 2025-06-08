@@ -53,9 +53,17 @@ async def main():
     await client.load_extension("core.initialisation")
 
     for filename in os.listdir('cogs'):
-        if filename.endswith('.py'):
-            await client.load_extension(f'cogs.{filename[:-3]}')
-            print(f"Loading {filename[:-3]}...")
+        if not filename.endswith('.py'):
+            continue
+
+        module_name = filename[:-3]
+
+        # Skip files that start with an underscore or are not valid module names
+        if module_name.startswith('_') or not module_name.isidentifier():
+            continue
+
+        await client.load_extension(f'cogs.{module_name}')
+        print(f"Loading {module_name}...")
 
     print("Starting Bot...")
 
