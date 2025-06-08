@@ -1,6 +1,7 @@
 import discord
 import aiosqlite
-import os
+
+from core.database import DB_PATH
 import logging
 
 from discord import app_commands
@@ -11,8 +12,6 @@ from core.utils import log_command_usage, check_permissions, get_embed_colour
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-os.makedirs('./data/databases', exist_ok=True)
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
@@ -40,7 +39,7 @@ class AdminCog(commands.Cog):
                 await interaction.followup.send("You do not have permission to use this command.", ephemeral=True)
                 return
 
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 cursor = await conn.execute(
                     "SELECT sql FROM sqlite_master WHERE type='table' AND name = ?",
                     (table_name,)
@@ -71,7 +70,7 @@ class AdminCog(commands.Cog):
                 await interaction.followup.send("You do not have permission to use this command.", ephemeral=True)
                 return
 
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 cursor = await conn.execute(
                     "SELECT name FROM sqlite_master WHERE type='table' AND name = ?",
                     (table_name,)

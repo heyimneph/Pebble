@@ -1,7 +1,7 @@
 import discord
 import logging
-import aiosqlite
-import os
+
+from core.database import DB_PATH
 import psutil
 import inspect
 
@@ -15,8 +15,6 @@ from core.utils import log_command_usage, check_permissions, get_embed_colour
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-os.makedirs('./data/databases', exist_ok=True)
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
@@ -90,7 +88,7 @@ class UtilityCog(commands.Cog):
         if interaction.user.guild_permissions.administrator:
             return True
 
-        async with aiosqlite.connect(db_path) as conn:
+        async with aiosqlite.connect(DB_PATH) as conn:
             cursor = await conn.execute('''
                 SELECT can_use_commands FROM permissions WHERE guild_id = ? AND user_id = ?
             ''', (interaction.guild.id, interaction.user.id))
@@ -200,7 +198,7 @@ class UtilityCog(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def authorise(self, interaction: discord.Interaction, user: discord.User):
         try:
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 await conn.execute('''
                     INSERT INTO permissions (guild_id, user_id, can_use_commands) VALUES (?, ?, 1)
                     ON CONFLICT(guild_id, user_id) DO UPDATE SET can_use_commands = 1
@@ -222,7 +220,7 @@ class UtilityCog(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def unauthorise(self, interaction: discord.Interaction, user: discord.User):
         try:
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 await conn.execute('''
                     UPDATE permissions SET can_use_commands = 0 WHERE guild_id = ? AND user_id = ?
                 ''', (interaction.guild.id, user.id))
@@ -240,7 +238,7 @@ class UtilityCog(commands.Cog):
 # Setup Function
 # ---------------------------------------------------------------------------------------------------------------------
 async def setup(bot):
-    async with aiosqlite.connect(db_path) as conn:
+    async with aiosqlite.connect(DB_PATH) as conn:
         await conn.execute('''
             CREATE TABLE IF NOT EXISTS blacklist (
                 user_id INTEGER PRIMARY KEY

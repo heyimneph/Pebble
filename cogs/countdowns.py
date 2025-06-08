@@ -1,11 +1,11 @@
 import discord
-import aiosqlite
+
+from core.database import DB_PATH
 import asyncio
 import aiohttp
 import logging
 import pytz
 import re
-import os
 
 from datetime import datetime, timedelta
 from discord.ext import commands, tasks
@@ -16,8 +16,6 @@ from core.utils import log_command_usage, get_embed_colour
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-os.makedirs('./data/databases', exist_ok=True)
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
@@ -59,7 +57,7 @@ class CancelCountdownButton(discord.ui.View):
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message("Only admins can cancel countdowns.", ephemeral=True)
             return
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             await db.execute("DELETE FROM countdowns WHERE guild_id = ? AND user_id = ? AND name = ?",
                              (self.guild_id, self.user_id, self.name))
             await db.commit()
@@ -141,7 +139,7 @@ class CountdownCog(commands.Cog):
 
             embed.set_thumbnail(url=self.bot.user.display_avatar.url)
 
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 cursor = await db.execute("SELECT countdown_channel_id FROM config WHERE guild_id = ?",
                                           (interaction.guild.id,))
                 row = await cursor.fetchone()
@@ -157,7 +155,7 @@ class CountdownCog(commands.Cog):
                 }
                 channel = await interaction.guild.create_text_channel('countdowns', overwrites=overwrites)
 
-                async with aiosqlite.connect(db_path) as db:
+                async with aiosqlite.connect(DB_PATH) as db:
                     await db.execute('''
                         INSERT INTO config (guild_id, countdown_channel_id)
                         VALUES (?, ?)
@@ -168,7 +166,7 @@ class CountdownCog(commands.Cog):
             view = CancelCountdownButton(self.bot, interaction.guild.id, interaction.user.id, name)
             message = await channel.send(embed=embed, view=view)
 
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 await db.execute('''
                     INSERT OR REPLACE INTO countdowns (guild_id, user_id, name, date, warned, channel_id, message_id)
                     VALUES (?, ?, ?, ?, 0, ?, ?)
@@ -193,7 +191,7 @@ class CountdownCog(commands.Cog):
                 await interaction.response.send_message("Only admins can set the countdown channel.", ephemeral=True)
                 return
 
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 await db.execute('''
                     INSERT INTO config (guild_id, countdown_channel_id)
                     VALUES (?, ?)
@@ -214,7 +212,7 @@ class CountdownCog(commands.Cog):
     @app_commands.command(name="countdown_list", description="User: See your active countdowns.")
     async def countdown_list(self, interaction: discord.Interaction):
         try:
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 rows = await db.execute_fetchall('''
                     SELECT name, date FROM countdowns
                     WHERE guild_id = ? AND user_id = ?
@@ -251,7 +249,7 @@ class CountdownCog(commands.Cog):
     # ---------------------------------------------------------------------------------------------------------------------
     async def resume_active_countdowns(self):
         await self.bot.wait_until_ready()
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             rows = await db.execute_fetchall('''
                 SELECT guild_id, user_id, name, date, channel_id, message_id
                 FROM countdowns
@@ -331,7 +329,7 @@ class CountdownCog(commands.Cog):
     async def countdown_check(self):
         now = datetime.utcnow()
         warning_threshold = now + timedelta(hours=24)
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             rows = await db.execute_fetchall('''
                 SELECT guild_id, user_id, name, date FROM countdowns
                 WHERE warned = 0 AND date <= ?
@@ -358,7 +356,7 @@ class CountdownCog(commands.Cog):
 # SETUP FUNCTION
 # ---------------------------------------------------------------------------------------------------------------------
 async def setup(bot):
-    async with aiosqlite.connect(db_path) as db:
+    async with aiosqlite.connect(DB_PATH) as db:
         await db.execute('''
             CREATE TABLE IF NOT EXISTS countdowns (
                 guild_id INTEGER,

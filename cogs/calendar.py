@@ -1,6 +1,7 @@
 import logging
 import discord
-import aiosqlite
+
+from core.database import DB_PATH
 import calendar
 import os
 import io
@@ -19,8 +20,6 @@ BST = pytz.timezone("Europe/London")
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-os.makedirs('./data/databases', exist_ok=True)
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
@@ -132,7 +131,7 @@ class CalendarCog(commands.Cog):
         now_bst = datetime.now(BST)
         if not (now_bst.hour == 0 and now_bst.minute == 0):
             return
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             rows = await db.execute_fetchall("""
                     SELECT guild_id, channel_id, message_id, month, year
                     FROM calendar_views
@@ -169,7 +168,7 @@ class CalendarCog(commands.Cog):
 # ---------------------------------------------------------------------------------------------------------------------
     async def restore_calendar_views(self):
         try:
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 cursor = await db.execute("SELECT guild_id, channel_id, message_id, month, year FROM calendar_views")
                 rows = await cursor.fetchall()
 
@@ -203,7 +202,7 @@ class CalendarCog(commands.Cog):
             logger.error(f"Error in restoring calendar views: {e}")
 
     async def autocomplete_calendar_title(self, interaction: discord.Interaction, current: str):
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             cursor = await db.execute("""
                 SELECT DISTINCT title FROM calendar_entries
                 WHERE guild_id = ? AND title LIKE ?
@@ -257,7 +256,7 @@ class CalendarCog(commands.Cog):
         draw.text((width // 2 - 10, 20 + th + 5), "💖", font=weekday_fnt, fill="black")
 
         # ─── Load events ─────────────────────────────────────────────────────────
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             c = await db.execute("""
                 SELECT title, date, emoji FROM calendar_entries
                 WHERE guild_id = ? AND title IS NOT NULL AND date IS NOT NULL
@@ -404,7 +403,7 @@ class CalendarCog(commands.Cog):
     @app_commands.command(name="set_calendar_channel", description="Admin: Set the channel for calendar posts.")
     async def set_calendar_channel(self, interaction: discord.Interaction, channel: discord.TextChannel):
         try:
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 # Insert or update config row
                 await db.execute("""
                     INSERT OR REPLACE INTO calendar (guild_id, calendar_channel_id)
@@ -466,7 +465,7 @@ class CalendarCog(commands.Cog):
             return
 
         # fetch matching entries
-        async with aiosqlite.connect(db_path) as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             cursor = await db.execute(
                 "SELECT emoji, title FROM calendar_entries "
                 "WHERE guild_id = ? AND date = ? "
@@ -527,7 +526,7 @@ class CalendarCog(commands.Cog):
 
             # Add all dates to the calendar_entries table
             days = (end_date - start_date).days + 1
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 for i in range(days):
                     day = start_date + timedelta(days=i)
                     await db.execute("""
@@ -555,7 +554,7 @@ class CalendarCog(commands.Cog):
         try:
             await log_command_usage(self.bot, interaction)
 
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 result = await db.execute("""
                     DELETE FROM calendar_entries
                     WHERE guild_id = ? AND title = ?
@@ -587,7 +586,7 @@ class CalendarCog(commands.Cog):
                                                             ephemeral=True)
                     return
 
-            async with aiosqlite.connect(db_path) as db:
+            async with aiosqlite.connect(DB_PATH) as db:
                 # Get existing entry
                 cursor = await db.execute("""
                     SELECT date, emoji FROM calendar_entries
@@ -623,7 +622,7 @@ class CalendarCog(commands.Cog):
 # Setup Function
 # ------------------------------------------------------------------------------------------------------------------
 async def setup(bot):
-    async with aiosqlite.connect(db_path) as db:
+    async with aiosqlite.connect(DB_PATH) as db:
         await db.execute('''
             CREATE TABLE IF NOT EXISTS calendar (
                 guild_id INTEGER,

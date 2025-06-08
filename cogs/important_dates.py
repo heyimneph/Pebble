@@ -1,7 +1,7 @@
 import discord
-import aiosqlite
+
+from core.database import DB_PATH
 import logging
-import os
 
 from discord import app_commands
 from discord.ext import commands
@@ -12,8 +12,6 @@ from core.utils import log_command_usage, check_permissions, get_embed_colour
 # ---------------------------------------------------------------------------------------------------------------------
 # Database Configuration
 # ---------------------------------------------------------------------------------------------------------------------
-os.makedirs('./data/databases', exist_ok=True)
-db_path = './data/databases/pebble.db'
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Logging Configuration
@@ -65,7 +63,7 @@ class ImportantDatesCog(commands.Cog):
 
             message = await channel.send(embed=embed)
 
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 await conn.execute('''
                     INSERT INTO dates (guild_id, type, value)
                     VALUES (?, 'channel', ?)
@@ -98,7 +96,7 @@ class ImportantDatesCog(commands.Cog):
                                                         ephemeral=True)
                 return
 
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 cursor = await conn.execute('SELECT value FROM dates WHERE guild_id = ? AND type = ?',
                                             (interaction.guild.id, 'channel'))
                 channel_row = await cursor.fetchone()
@@ -149,7 +147,7 @@ class ImportantDatesCog(commands.Cog):
     @app_commands.command(name="remove_date", description="User: Remove a date manually by editing the embed.")
     async def remove_date(self, interaction: discord.Interaction, index: int):
         try:
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 cursor = await conn.execute('SELECT value FROM dates WHERE guild_id = ? AND type = ?', (interaction.guild.id, 'channel'))
                 channel_row = await cursor.fetchone()
                 cursor = await conn.execute('SELECT value FROM dates WHERE guild_id = ? AND type = ?', (interaction.guild.id, 'message_id'))
@@ -200,7 +198,7 @@ class ImportantDatesCog(commands.Cog):
                     await interaction.response.send_message("Error: Invalid date format. Use DD/MM/YYYY.", ephemeral=True)
                     return
 
-            async with aiosqlite.connect(db_path) as conn:
+            async with aiosqlite.connect(DB_PATH) as conn:
                 cursor = await conn.execute('SELECT value FROM dates WHERE guild_id = ? AND type = ?', (interaction.guild.id, 'channel'))
                 channel_row = await cursor.fetchone()
                 cursor = await conn.execute('SELECT value FROM dates WHERE guild_id = ? AND type = ?', (interaction.guild.id, 'message_id'))
@@ -256,7 +254,7 @@ class ImportantDatesCog(commands.Cog):
 # Setup
 # ------------------------------------------------------------------------------------------------------------------
 async def setup(bot):
-    async with aiosqlite.connect(db_path) as conn:
+    async with aiosqlite.connect(DB_PATH) as conn:
         await conn.execute('''
             CREATE TABLE IF NOT EXISTS dates (
                 guild_id INTEGER,
