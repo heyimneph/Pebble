@@ -1,0 +1,77 @@
+[
+  {
+    "a": "Be able to fly",
+    "b": "Be invisible",
+    "category": "superpowers"
+  },
+  {
+    "a": "Live in the city",
+    "b": "Live in the countryside",
+    "category": "lifestyle"
+  },
+  {
+    "a": "Have unlimited money",
+    "b": "Have unlimited time",
+    "category": "philosophical"
+  },
+  {
+    "a": "Always be hot",
+    "b": "Always be cold",
+    "category": "comfort"
+  },
+  {
+    "a": "Read minds",
+    "b": "See the future",
+    "category": "superpowers"
+  },
+  {
+    "a": "Give up music",
+    "b": "Give up movies",
+    "category": "entertainment"
+  },
+  {
+    "a": "Be a famous artist",
+    "b": "Be a famous scientist",
+    "category": "career"
+  },
+  {
+    "a": "Travel the world for free",
+    "b": "Have a million dollars",
+    "category": "travel"
+  },
+  {
+    "a": "Be stuck in a rom-com",
+    "b": "Be stuck in an action movie",
+    "category": "fun"
+  },
+  {
+    "a": "Only whisper forever",
+    "b": "Only shout forever",
+    "category": "silly"
+  },
+  {
+    "a": "Eat sweet food forever",
+    "b": "Eat savory food forever",
+    "category": "food"
+  },
+  {
+    "a": "Be able to talk to animals",
+    "b": "Speak every language",
+    "category": "fantasy"
+  },
+  {
+    "a": "Have a rewind button in life",
+    "b": "Have a pause button in life",
+    "category": "philosophical"
+  },
+  {
+    "a": "Be always 10 minutes late",
+    "b": "Be always 20 minutes early",
+    "category": "time"
+  },
+  {
+    "a": "Be the funniest person in the room",
+    "b": "Be the most intelligent",
+    "category": "personality"
+  }
+]
