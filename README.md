@@ -34,5 +34,9 @@ After installing dependencies and setting up the environment file, run:
 python bot.py
 ```
 
+Pebble looks for its fonts in the `fonts/` directory and prompt files in
+`prompt_bank/`. These folders are created automatically on startup if they do
+not already exist, so you can drop custom assets in there as needed.
+
 ## Commands
 Use the `/help` command in Discord to see a paginated list of Pebble's commands. The `cogs` folder contains the source code for each command module if you want to explore further.

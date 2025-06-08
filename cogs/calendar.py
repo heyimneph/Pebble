@@ -235,7 +235,7 @@ class CalendarCog(commands.Cog):
 
         # ─── Load fonts ─────────────────────────────────────────────────────────
         base = os.path.dirname(os.path.abspath(__file__))
-        fp = os.path.join(base, "..", "data", "fonts", "PatrickHand-Regular.ttf")
+        fp = os.path.join(base, "..", "fonts", "PatrickHand-Regular.ttf")
         try:
             title_fnt = ImageFont.truetype(fp, TITLE_FONT_SIZE)
             weekday_fnt = ImageFont.truetype(fp, WEEKDAY_FONT_SIZE)
